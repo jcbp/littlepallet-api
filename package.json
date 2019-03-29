@@ -1,0 +1,25 @@
+{
+  "name": "test-backend-charly",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start": "node ./node_modules/nodemon/bin/nodemon.js index.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@bitbucket.org/eloestemanda/test-backend-charly.git"
+  },
+  "author": "cbertinci",
+  "license": "ISC",
+  "homepage": "https://bitbucket.org/eloestemanda/test-backend-charly#readme",
+  "dependencies": {
+    "body-parser": "^1.18.3",
+    "express": "^4.16.4",
+    "mongodb": "^3.2.2"
+  },
+  "devDependencies": {
+    "nodemon": "^1.18.10"
+  }
+}
