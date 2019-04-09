@@ -1,15 +1,15 @@
 const dbConn = require('./db-conn');
 
 module.exports = {
-  async getLists() {
+  async getLists(req, res) {
     try {
       const db = await dbConn.open();
       const lists = await db.collection('lists').find({}).toArray();
       dbConn.close();
-      return lists;
+      res.status(200).send(lists);
     }
-    catch (e) {
-      throw new Error(e);
+    catch (error) {
+      res.status(500).send(error);
     }
   }
 };
