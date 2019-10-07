@@ -1,5 +1,11 @@
 # DB
 
+## Start
+service mongod start
+
+## Stop
+service mongod stop
+
 ## Connection
 localhost:27017
 
