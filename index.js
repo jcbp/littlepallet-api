@@ -9,6 +9,14 @@ const port = process.env.PORT || 3000;
 app.use(bodyParser.urlencoded({extended: false}));
 app.use(bodyParser.json());
 
+const allowCrossDomain = (req, res, next) => {
+  res.header('Access-Control-Allow-Origin', 'http://0.0.0.0:9000');
+  res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE');
+  res.header('Access-Control-Allow-Headers', 'Content-Type');
+  next();
+};
+
+app.use(allowCrossDomain);
 app.use('/api', apiRouter);
 
 app.listen(port, () => console.log(`Listening on port ${port}`));
