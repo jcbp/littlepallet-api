@@ -1,0 +1,84 @@
+{
+  "env": {
+    "node": true,
+    "es6": true
+  },
+  "extends": [
+    "eslint:recommended"
+  ],
+  "globals": {
+    "Atomics": "readonly",
+    "SharedArrayBuffer": "readonly"
+  },
+  "parserOptions": {
+    "ecmaVersion": 2018,
+    "sourceType": "module"
+  },
+  "rules": {
+    "no-void": "error",
+    "no-bitwise": "warn",
+    "no-unneeded-ternary": "warn",
+    "operator-assignment": ["warn", "always"],
+    "space-infix-ops": "warn",
+    "spaced-comment": ["warn", "always"],
+    "space-before-blocks": "warn",
+    "space-before-function-paren": ["warn", "never"],
+    "space-in-parens": ["warn", "never"],
+    "switch-colon-spacing": ["warn", {"after": true, "before": false}],
+    "key-spacing": ["warn", {"beforeColon": false, "afterColon": true}],
+    "camelcase": ["warn", {"properties": "always"}],
+    "padded-blocks": ["warn", "never"],
+    "one-var-declaration-per-line": ["warn", "always"],
+    "object-curly-spacing": ["warn", "never"],
+    "no-trailing-spaces": "warn",
+    "no-new-object": "warn",
+    "no-new-func": "warn",
+    "no-multi-assign": "error",
+    "no-mixed-spaces-and-tabs": "error",
+    "no-inline-comments": "warn",
+    "no-unused-vars": "warn",
+    "no-unused-expressions": "warn",
+    "no-continue": "error",
+    "no-array-constructor": "error",
+    "no-sequences": "error",
+    "curly": "error",
+    "object-curly-newline": ["error", {
+      "multiline": true
+    }],
+    "space-unary-ops": ["warn", {
+      "words": true,
+      "nonwords": false,
+      "overrides": {
+        "+": true,
+        "-": true
+      }
+    }],
+    "padding-line-between-statements": ["warn",
+      {"blankLine": "always", "prev": ["const", "let", "var"], "next": "*"},
+      {"blankLine": "any", "prev": ["const", "let", "var"], "next": ["const", "let", "var"]},
+      {"blankLine": "always", "prev": "directive", "next": "*"},
+      {"blankLine": "any", "prev": "directive", "next": "directive"}
+    ],
+    "indent": [
+      "error",
+      2
+    ],
+    "no-irregular-whitespace": "warn",
+    "no-multi-spaces": "warn",
+    "no-multiple-empty-lines": [
+      "warn",
+      {
+        "max": 1,
+        "maxEOF": 1
+      }
+    ],
+    "quotes": [
+      "error",
+      "single"
+    ],
+    "semi": [
+      "error",
+      "always"
+    ]
+  }
+}
