@@ -1,10 +1,28 @@
 const express = require('express');
-
-const controller = require('./controller');
+const listController = require('./list-controller');
+const itemController = require('./item-controller');
+const fieldController = require('./field-controller');
+const filterController = require('./filter-controller');
 
 const router = express.Router();
 
-router.get('/list', controller.getLists);
+router.get('/list', listController.getLists);
+router.get('/list/:id', listController.getList);
+router.post('/list', listController.createList);
+router.patch('/list/:id', listController.updateList);
+
+router.post('/list/:id/item', itemController.createItem);
+router.post('/list/:id/item/at/:position', itemController.createItemAtPosition);
+router.patch('/list/:listId/item/:itemId', itemController.updateItem);
+router.delete('/list/:listId/item/:itemId', itemController.deleteItem);
+router.patch('/list/:listId/item/:itemId/field/:fieldId', itemController.updateItemField);
+
+router.post('/list/:id/field', fieldController.createField);
+router.post('/list/:id/field/at/:position', fieldController.createFieldAtPosition);
+router.patch('/list/:listId/field/:fieldId', fieldController.updateField);
+router.delete('/list/:listId/field/:fieldId', fieldController.deleteField);
+
+router.post('/list/:id/filter', filterController.createFilter);
 
 router.post('/', (req, res) => {
   console.log(req.body);

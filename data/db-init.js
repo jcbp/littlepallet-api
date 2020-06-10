@@ -7,38 +7,47 @@ const dbConn = require('../src/db-conn');
   await db.collection('lists').insertMany([
     {
       'name': 'Tasks',
+      'fieldLastIndex': 6,
+      'filtersLastIndex': 0,
+      'filters': [],
       'fields': [
         {
           'type': 'boolean',
           'name': 'Done',
           'width': 90,
-          '_id': '0' 
+          '_id': 0
+        },
+        {
+          'type': 'traffic-light',
+          'name': 'Status',
+          'width': 90,
+          '_id': 6
         },
         {
           'type': 'text',
           'name': 'Title',
-          '_id': '2' 
+          '_id': 2 
         },
         {
           'type': 'date',
           'name': 'Date',
-          '_id': '1' 
+          '_id': 1 
         },
         {
           'type': 'long-text',
           'name': 'Description',
-          '_id': '3' 
+          '_id': 3 
         },
         {
           'type': 'options',
           'options': ['Pepe', 'Coco'],
           'name': 'Assign to',
-          '_id': '4' 
+          '_id': 4 
         },
         {
-          'type': 'time',
-          'name': 'Time tracking',
-          '_id': '5' 
+          'type': 'number',
+          'name': 'Money',
+          '_id': 5 
         }
       ],
       'items': [

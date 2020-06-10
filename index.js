@@ -11,7 +11,7 @@ app.use(bodyParser.json());
 
 const allowCrossDomain = (req, res, next) => {
   res.header('Access-Control-Allow-Origin', 'http://0.0.0.0:9000');
-  res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE');
+  res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,PATCH,DELETE');
   res.header('Access-Control-Allow-Headers', 'Content-Type');
   next();
 };
