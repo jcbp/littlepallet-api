@@ -71,27 +71,27 @@ module.exports = {
     }
   },
   
-  async updateField(req, res) {
-    console.log('updateField', req.params, req.body);
+  async updateFilter(req, res) {
+    console.log('updateFilter', req.params, req.body);
     try {
-      const fieldId = parseInt(req.params.fieldId);
+      const filterId = parseInt(req.params.filterId);
       const db = await dbConn.open();
 
       await db.collection('lists').updateOne(
         { _id: ObjectID(req.params.listId) },
-        { $set: { [`fields.$[field].${req.body.attr}`]: req.body.value } },
-        { arrayFilters: [ { 'field._id': fieldId } ] }
+        { $set: { [`filters.$[filter].${req.body.attr}`]: req.body.value } },
+        { arrayFilters: [ { 'filter._id': filterId } ] }
       );
 
       const list = await db.collection('lists').find({
         _id: ObjectID(req.params.listId),
       }).project({
         _id: 0,
-        fields: { $elemMatch: { _id: fieldId } }
+        filters: { $elemMatch: { _id: filterId } }
       }).toArray();
 
       dbConn.close();
-      res.status(200).send(list[0].fields && list[0].fields[0]);
+      res.status(200).send(list[0].filters && list[0].filters[0]);
     }
     catch(e) {
       console.log(e);

@@ -23,6 +23,7 @@ router.patch('/list/:listId/field/:fieldId', fieldController.updateField);
 router.delete('/list/:listId/field/:fieldId', fieldController.deleteField);
 
 router.post('/list/:id/filter', filterController.createFilter);
+router.patch('/list/:listId/filter/:filterId', filterController.updateFilter);
 
 router.post('/', (req, res) => {
   console.log(req.body);
