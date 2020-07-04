@@ -1,5 +1,6 @@
 const express = require('express');
 const listController = require('./list-controller');
+const templateController = require('./template-controller');
 const itemController = require('./item-controller');
 const fieldController = require('./field-controller');
 const filterController = require('./filter-controller');
@@ -9,7 +10,11 @@ const router = express.Router();
 router.get('/list', listController.getLists);
 router.get('/list/:id', listController.getList);
 router.post('/list', listController.createList);
+router.post('/list/from/:id', listController.createListFromTemplate);
 router.patch('/list/:id', listController.updateList);
+
+router.post('/template/from/:listId', templateController.createTemplate);
+router.get('/template', templateController.getTemplates);
 
 router.post('/list/:id/item', itemController.createItem);
 router.post('/list/:id/item/at/:position', itemController.createItemAtPosition);
