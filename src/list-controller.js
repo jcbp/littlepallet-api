@@ -97,8 +97,8 @@ module.exports = {
     try {
       const db = await dbConn.open();
 
-      const updateData = ['name'].reduce((data, prop) => {
-        if(req.body[prop]) {
+      const updateData = ['name', 'isTemplate'].reduce((data, prop) => {
+        if(typeof req.body[prop] !== 'undefined') {
           data[prop] = req.body[prop];
         }
         return data;
