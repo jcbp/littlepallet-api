@@ -1,12 +1,38 @@
 const dbConn = require('./db-conn');
 const ObjectID = require('mongodb').ObjectID;
 
+const cloneChildLists = async (db, name, origin) => {
+  const childLists = [];
+
+  await Promise.all(origin.childLists.map(async childList => {
+    const childOrigin = await db.collection('lists').findOne({
+      _id: ObjectID(childList['0'])
+    });
+    const list = await db.collection('lists').insertOne({
+      'name': `${name} - ${childOrigin.name}`,
+      'description': childOrigin.description,
+      'fieldLastIndex': childOrigin.fieldLastIndex,
+      'filterLastIndex': childOrigin.filterLastIndex,
+      'filters': childOrigin.filters,
+      'fields': childOrigin.fields,
+      'items': []
+    });
+    childLists.push({
+      _id: childList._id,
+      '0': list.ops.pop()._id
+    });
+  }));
+
+  return childLists;
+};
+
 module.exports = {
   async getLists(req, res) {
     try {
       const db = await dbConn.open();
       const lists = await db.collection('lists').find({
-        $or: [ { isTemplate: { $exists: false } }, { isTemplate: false } ]
+        $or: [ { isTemplate: { $exists: false } }, { isTemplate: false } ],
+        status: { $ne: 'deleted' }
       }).project({
         name: 1,
         description: 1
@@ -63,15 +89,19 @@ module.exports = {
     }
   },
 
-  async createListFromTemplate(req, res) {
+  async createListFromAnother(req, res) {
     try {
-      console.log('createListFromTemplate', req.body);
+      console.log('createListFromAnother', req.body);
 
       const db = await dbConn.open();
 
       const origin = await db.collection('lists').findOne({
         _id: ObjectID(req.params.id)
       });
+
+      const childLists = origin.childLists
+        ? await cloneChildLists(db, req.body.name, origin)
+        : [];
 
       const list = await db.collection('lists').insertOne({
         'name': req.body.name,
@@ -80,6 +110,7 @@ module.exports = {
         'filterLastIndex': origin.filterLastIndex,
         'filters': origin.filters,
         'fields': origin.fields,
+        'childLists': childLists,
         'items': []
       });
 
@@ -97,7 +128,7 @@ module.exports = {
     try {
       const db = await dbConn.open();
 
-      const updateData = ['name', 'isTemplate'].reduce((data, prop) => {
+      const updateData = ['name', 'childLists', 'isTemplate', 'status'].reduce((data, prop) => {
         if(typeof req.body[prop] !== 'undefined') {
           data[prop] = req.body[prop];
         }
