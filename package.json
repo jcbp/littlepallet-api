@@ -4,7 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "node ./node_modules/nodemon/bin/nodemon.js index.js",
+    "start": "node index.js",
+    "nodemon": "node ./node_modules/nodemon/bin/nodemon.js index.js",
     "db-init": "node data/db-init.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
