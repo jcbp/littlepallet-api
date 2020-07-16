@@ -4,9 +4,9 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "node index.js",
-    "nodemon": "node ./node_modules/nodemon/bin/nodemon.js index.js",
-    "db-init": "node data/db-init.js",
+    "start": "cross-env NODE_ENV=production node index.js",
+    "nodemon": "cross-env NODE_ENV=development node ./node_modules/nodemon/bin/nodemon.js index.js",
+    "db-init": "cross-env NODE_ENV=development node data/db-init.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
@@ -22,6 +22,7 @@
     "mongodb": "^3.2.2"
   },
   "devDependencies": {
+    "cross-env": "^7.0.2",
     "nodemon": "^1.18.10"
   }
 }

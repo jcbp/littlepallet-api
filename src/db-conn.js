@@ -1,7 +1,8 @@
 const MongoClient = require('mongodb').MongoClient;
 
-const urlLocal = 'mongodb://localhost:27017';
-const url = 'mongodb+srv://adminDbUser:Np8lc88rTrNXNUDQ@cluster0.adroc.mongodb.net/littlepallet?retryWrites=true&w=majority';
+const url = process.env.NODE_ENV === 'development'
+  ? 'mongodb://localhost:27017'
+  : 'mongodb+srv://adminDbUser:Np8lc88rTrNXNUDQ@cluster0.adroc.mongodb.net/littlepallet?retryWrites=true&w=majority';
 
 let client;
 
