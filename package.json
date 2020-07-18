@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "start": "cross-env NODE_ENV=production node index.js",
-    "nodemon": "cross-env NODE_ENV=development node ./node_modules/nodemon/bin/nodemon.js index.js",
+    "dev": "cross-env NODE_ENV=development node ./node_modules/nodemon/bin/nodemon.js index.js",
     "db-init": "cross-env NODE_ENV=development node data/db-init.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },

@@ -4,6 +4,7 @@ const templateController = require('./template-controller');
 const itemController = require('./item-controller');
 const fieldController = require('./field-controller');
 const filterController = require('./filter-controller');
+const viewController = require('./view-controller');
 
 const router = express.Router();
 
@@ -12,6 +13,8 @@ router.get('/list/:id', listController.getList);
 router.post('/list', listController.createList);
 router.post('/list/from/:id', listController.createListFromAnother);
 router.patch('/list/:id', listController.updateList);
+
+router.patch('/list/:id/view', viewController.updateView);
 
 router.post('/template/from/:listId', templateController.createTemplate);
 router.get('/template', templateController.getTemplates);

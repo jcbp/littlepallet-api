@@ -39,6 +39,7 @@ module.exports = {
         'filterLastIndex': origin.filterLastIndex,
         'filters': origin.filters,
         'fields': origin.fields,
+        'views': origin.views,
         'items': []
       });
 

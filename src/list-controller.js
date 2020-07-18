@@ -15,6 +15,7 @@ const cloneChildLists = async (db, name, origin) => {
       'filterLastIndex': childOrigin.filterLastIndex,
       'filters': childOrigin.filters,
       'fields': childOrigin.fields,
+      'views': childOrigin.views,
       'items': []
     });
     childLists.push({
@@ -77,6 +78,7 @@ module.exports = {
         'conditions': [],
         'filters': [],
         'fields': [],
+        'views': [],
         'items': []
       });
 
@@ -110,6 +112,7 @@ module.exports = {
         'filterLastIndex': origin.filterLastIndex,
         'filters': origin.filters,
         'fields': origin.fields,
+        'views': origin.views,
         'childLists': childLists,
         'items': []
       });
