@@ -78,7 +78,7 @@ module.exports = {
         'conditions': [],
         'filters': [],
         'fields': [],
-        'views': [],
+        'views': {},
         'items': []
       });
 
