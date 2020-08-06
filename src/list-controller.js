@@ -131,7 +131,7 @@ module.exports = {
     try {
       const db = await dbConn.open();
 
-      const updateData = ['name', 'childLists', 'isTemplate', 'status'].reduce((data, prop) => {
+      const updateData = ['name', 'childLists', 'isTemplate', 'status', 'category'].reduce((data, prop) => {
         if(typeof req.body[prop] !== 'undefined') {
           data[prop] = req.body[prop];
         }

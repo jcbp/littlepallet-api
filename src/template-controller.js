@@ -10,7 +10,8 @@ module.exports = {
         isTemplate: true
       }).project({
         name: 1,
-        description: 1
+        description: 1,
+        category: 1
       }).toArray();
 
       dbConn.close();
