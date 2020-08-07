@@ -77,7 +77,7 @@ module.exports = {
         'filterLastIndex': 0,
         'conditions': [],
         'filters': [],
-        'fields': [],
+        'fields': [{ name: 'New field', type: 'text' }],
         'views': {},
         'items': []
       });
