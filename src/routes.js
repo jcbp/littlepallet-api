@@ -9,10 +9,12 @@ const viewController = require('./view-controller');
 const router = express.Router();
 
 router.get('/list', listController.getLists);
+router.get('/list/trash', listController.getDeletedLists);
 router.get('/list/:id', listController.getList);
 router.post('/list', listController.createList);
 router.post('/list/from/:id', listController.createListFromAnother);
 router.patch('/list/:id', listController.updateList);
+router.delete('/list/:id', listController.deleteList);
 
 router.patch('/list/:id/view', viewController.updateView);
 

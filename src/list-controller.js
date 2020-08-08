@@ -48,6 +48,26 @@ module.exports = {
     }
   },
 
+  async getDeletedLists(req, res) {
+    try {
+      const db = await dbConn.open();
+      const lists = await db.collection('lists').find({
+        $or: [ { isTemplate: { $exists: false } }, { isTemplate: false } ],
+        status: 'deleted'
+      }).project({
+        name: 1,
+        description: 1
+      }).toArray();
+
+      dbConn.close();
+      res.status(200).send(lists);
+    }
+    catch(e) {
+      console.log(e);
+      res.status(500).send(e);
+    }
+  },
+
   async getList(req, res) {
     try {
       const db = await dbConn.open();
@@ -146,6 +166,24 @@ module.exports = {
 
       dbConn.close();
       res.status(200).send(list.value);
+    }
+    catch(e) {
+      console.log(e);
+      res.status(500).send(e);
+    }
+  },
+
+  async deleteList(req, res) {
+    console.log('deleteList', req.params, req.body.name);
+    try {
+      const db = await dbConn.open();
+
+      const list = await db.collection('lists').deleteOne(
+        { _id: ObjectID(req.params.id) }
+      );
+
+      dbConn.close();
+      res.status(200).send({ _id: req.params.id });
     }
     catch(e) {
       console.log(e);
