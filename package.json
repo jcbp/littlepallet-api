@@ -17,8 +17,12 @@
   "license": "ISC",
   "homepage": "https://bitbucket.org/eloestemanda/test-backend-charly#readme",
   "dependencies": {
+    "bcrypt": "^5.0.0",
     "body-parser": "^1.18.3",
+    "config": "^3.3.1",
     "express": "^4.16.4",
+    "joi": "^17.2.0",
+    "jsonwebtoken": "^8.5.1",
     "mongodb": "^3.2.2"
   },
   "devDependencies": {

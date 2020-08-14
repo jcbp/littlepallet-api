@@ -1,4 +1,4 @@
-const dbConn = require('./db-conn');
+const dbConn = require('../db-conn');
 const ObjectID = require('mongodb').ObjectID;
 
 const getNextFieldIndex = async (db, listId) => {

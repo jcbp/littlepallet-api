@@ -1,4 +1,4 @@
-const dbConn = require('./db-conn');
+const dbConn = require('../db-conn');
 const ObjectID = require('mongodb').ObjectID;
 
 const cloneChildLists = async (db, name, origin) => {
@@ -29,11 +29,13 @@ const cloneChildLists = async (db, name, origin) => {
 
 module.exports = {
   async getLists(req, res) {
+    console.log('getLists');
     try {
       const db = await dbConn.open();
       const lists = await db.collection('lists').find({
         $or: [ { isTemplate: { $exists: false } }, { isTemplate: false } ],
-        status: { $ne: 'deleted' }
+        status: { $ne: 'deleted' },
+        owner: req.user.email
       }).project({
         name: 1,
         description: 1
@@ -49,11 +51,13 @@ module.exports = {
   },
 
   async getDeletedLists(req, res) {
+    console.log('getDeletedLists');
     try {
       const db = await dbConn.open();
       const lists = await db.collection('lists').find({
         $or: [ { isTemplate: { $exists: false } }, { isTemplate: false } ],
-        status: 'deleted'
+        status: 'deleted',
+        owner: req.user.email
       }).project({
         name: 1,
         description: 1
@@ -69,15 +73,24 @@ module.exports = {
   },
 
   async getList(req, res) {
+    console.log('getList');
     try {
       const db = await dbConn.open();
 
       const list = await db.collection('lists').findOne({
-        _id: ObjectID(req.params.id)
+        _id: ObjectID(req.params.id),
+        owner: req.user.email
       });
 
       dbConn.close();
-      res.status(200).send(list);
+      if(list) {
+        res.status(200).send(list);
+      }
+      else {
+        res.status(401).send({
+          message: 'Resource does not exist or you do not have permissions'
+        });
+      }
     }
     catch(e) {
       console.log(e);
@@ -92,6 +105,7 @@ module.exports = {
       const db = await dbConn.open();
       const list = await db.collection('lists').insertOne({
         'name': req.body.name,
+        'owner': req.user.email,
         'description': req.body.description,
         'fieldLastIndex': 0,
         'filterLastIndex': 0,
@@ -127,6 +141,7 @@ module.exports = {
 
       const list = await db.collection('lists').insertOne({
         'name': req.body.name,
+        'owner': req.user.email,
         'description': req.body.description,
         'fieldLastIndex': origin.fieldLastIndex,
         'filterLastIndex': origin.filterLastIndex,
@@ -178,12 +193,38 @@ module.exports = {
     try {
       const db = await dbConn.open();
 
-      const list = await db.collection('lists').deleteOne(
-        { _id: ObjectID(req.params.id) }
-      );
+      const list = await db.collection('lists').deleteOne({
+        _id: ObjectID(req.params.id),
+        owner: req.user.email
+      });
 
       dbConn.close();
       res.status(200).send({ _id: req.params.id });
+    }
+    catch(e) {
+      console.log(e);
+      res.status(500).send(e);
+    }
+  },
+
+  async updateView(req, res) {
+    console.log('updateView', req.params, req.body.name);
+    try {
+      const db = await dbConn.open();
+
+      const updateData = Object.entries(req.body).reduce((data, prop) => {
+        data['views.' + prop[0]] = prop[1];
+        return data;
+      }, {});
+
+      const list = await db.collection('lists').findOneAndUpdate(
+        { _id: ObjectID(req.params.id) },
+        { $set: updateData },
+        { returnOriginal: false }
+      );
+
+      dbConn.close();
+      res.status(200).send(list.value.views);
     }
     catch(e) {
       console.log(e);
