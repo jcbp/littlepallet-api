@@ -84,7 +84,11 @@ module.exports = {
 
       const list = await db.collection('lists').findOne({
         _id: ObjectID(req.params.id),
-        $or: [ { isTemplate: true }, { owner: req.user.email } ],
+        $or: [
+          { isTemplate: true },
+          { owner: req.user.email },
+          { shared: { $in: [req.user.email] } }
+        ],
       });
 
       dbConn.close();
@@ -179,7 +183,13 @@ module.exports = {
       }, {});
 
       const list = await db.collection('lists').findOneAndUpdate(
-        { _id: ObjectID(req.params.id) },
+        {
+          _id: ObjectID(req.params.id),
+          $or: [
+            { owner: req.user.email },
+            { shared: { $in: [req.user.email] } }
+          ]
+        },
         { $set: updateData },
         { returnOriginal: false }
       );
