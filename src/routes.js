@@ -11,6 +11,7 @@ const router = express.Router();
 
 router.post('/user', userController.signUp);
 router.post('/user/login', userController.login);
+router.get('/user/current', auth, userController.getCurrent);
 
 router.get('/list', auth, listController.getLists);
 router.get('/list/trash', auth, listController.getDeletedLists);

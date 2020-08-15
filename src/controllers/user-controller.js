@@ -33,8 +33,9 @@ module.exports = {
 
       const db = await dbConn.open();
 
+      const email = req.body.email.toLowerCase();
       let user = await db.collection('users').findOne({
-        email: req.body.email
+        email: email
       });
       if(user) {
         dbConn.close();
@@ -43,7 +44,7 @@ module.exports = {
 
       user = await db.collection('users').insertOne({
         'name': req.body.name,
-        'email': req.body.email,
+        'email': email,
         'password': await bcrypt.hash(req.body.password, 10)
       });
       user = user.ops.pop();
@@ -66,13 +67,17 @@ module.exports = {
   },
 
   async login(req, res) {
+    if(!req.body.email) {
+      res.status(404).send('Invalid user or password');
+      return;
+    }
     try {
       console.log('login');
 
       const db = await dbConn.open();
 
       const user = await db.collection('users').findOne({
-        email: req.body.email
+        email: req.body.email.toLowerCase()
       });
 
       dbConn.close();
@@ -100,4 +105,8 @@ module.exports = {
       res.status(500).send(e);
     }
   },
+
+  getCurrent(req, res) {
+    res.status(200).send(req.user);
+  }
 };

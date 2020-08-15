@@ -35,10 +35,15 @@ module.exports = {
       const lists = await db.collection('lists').find({
         $or: [ { isTemplate: { $exists: false } }, { isTemplate: false } ],
         status: { $ne: 'deleted' },
-        owner: req.user.email
+        $or: [
+          { owner: req.user.email },
+          { shared: { $in: [req.user.email] } }
+        ]
       }).project({
         name: 1,
-        description: 1
+        description: 1,
+        shared: 1,
+        owner: 1
       }).toArray();
 
       dbConn.close();
@@ -79,7 +84,7 @@ module.exports = {
 
       const list = await db.collection('lists').findOne({
         _id: ObjectID(req.params.id),
-        owner: req.user.email
+        $or: [ { isTemplate: true }, { owner: req.user.email } ],
       });
 
       dbConn.close();
