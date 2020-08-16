@@ -13,7 +13,9 @@ const cloneChildLists = async (db, name, origin) => {
       'description': childOrigin.description,
       'fieldLastIndex': childOrigin.fieldLastIndex,
       'filterLastIndex': childOrigin.filterLastIndex,
+      'userLastIndex': childOrigin.userLastIndex,
       'filters': childOrigin.filters,
+      'users': childOrigin.users,
       'fields': childOrigin.fields,
       'views': childOrigin.views,
       'items': []
@@ -37,12 +39,12 @@ module.exports = {
         status: { $ne: 'deleted' },
         $or: [
           { owner: req.user.email },
-          { shared: { $in: [req.user.email] } }
+          { users: { $elemMatch: { email: req.user.email } } }
         ]
       }).project({
         name: 1,
         description: 1,
-        shared: 1,
+        users: 1,
         owner: 1
       }).toArray();
 
@@ -87,7 +89,7 @@ module.exports = {
         $or: [
           { isTemplate: true },
           { owner: req.user.email },
-          { shared: { $in: [req.user.email] } }
+          { users: { $elemMatch: { email: req.user.email } } }
         ],
       });
 
@@ -118,8 +120,10 @@ module.exports = {
         'description': req.body.description,
         'fieldLastIndex': 0,
         'filterLastIndex': 0,
+        'userLastIndex': 0,
         'conditions': [],
         'filters': [],
+        'users': [],
         'fields': [{ name: 'New field', type: 'text' }],
         'views': {},
         'items': []
@@ -154,7 +158,9 @@ module.exports = {
         'description': req.body.description,
         'fieldLastIndex': origin.fieldLastIndex,
         'filterLastIndex': origin.filterLastIndex,
+        'userLastIndex': origin.userLastIndex,
         'filters': origin.filters,
+        'users': origin.users,
         'fields': origin.fields,
         'views': origin.views,
         'childLists': childLists,
@@ -187,7 +193,13 @@ module.exports = {
           _id: ObjectID(req.params.id),
           $or: [
             { owner: req.user.email },
-            { shared: { $in: [req.user.email] } }
+            { users: {
+                $elemMatch: {
+                  email: req.user.email,
+                  role: { $in: [ 'writer', 'organizer' ] }
+                }
+              }
+            }
           ]
         },
         { $set: updateData },
