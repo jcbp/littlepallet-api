@@ -53,7 +53,7 @@ module.exports = {
       await db.collection('lists').updateOne(
         { _id: ObjectID(req.params.listId) },
         { $set: { [`users.$[user].${req.body.attr}`]: req.body.value } },
-        { arrayUsers: [ { 'user._id': userId } ] }
+        { arrayFilters: [ { 'user._id': userId } ] }
       );
 
       const list = await db.collection('lists').find({
@@ -78,20 +78,18 @@ module.exports = {
       const userId = parseInt(req.params.userId);
       const db = await dbConn.open();
 
+      const list = await db.collection('lists').findOne({
+        _id: ObjectID(req.params.listId)
+      });
+      const user = list.users.find(user => user._id === userId);
+
       await db.collection('lists').updateOne(
         { _id: ObjectID(req.params.listId) },
         { $pull: { users: { _id: userId } } }
       );
 
-      const users = await db.collection('lists').find({
-        _id: ObjectID(req.params.listId),
-      }).project({
-        _id: 0,
-        users: 1
-      }).toArray();
-
       dbConn.close();
-      res.status(200).send(users.pop().users);
+      res.status(200).send(user);
     }
     catch(e) {
       console.log(e);
