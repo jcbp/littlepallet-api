@@ -156,6 +156,7 @@ module.exports = {
         'name': req.body.name,
         'owner': req.user.email,
         'description': req.body.description,
+        'commentsEnabled': origin.commentsEnabled,
         'fieldLastIndex': origin.fieldLastIndex,
         'filterLastIndex': origin.filterLastIndex,
         'userLastIndex': origin.userLastIndex,
@@ -181,7 +182,14 @@ module.exports = {
     try {
       const db = await dbConn.open();
 
-      const updateData = ['name', 'childLists', 'isTemplate', 'status', 'category'].reduce((data, prop) => {
+      const updateData = [
+        'name',
+        'childLists',
+        'isTemplate',
+        'status',
+        'category',
+        'commentsEnabled'
+      ].reduce((data, prop) => {
         if(typeof req.body[prop] !== 'undefined') {
           data[prop] = req.body[prop];
         }

@@ -7,6 +7,7 @@ const fieldController = require('./controllers/field-controller');
 const filterController = require('./controllers/filter-controller');
 const userController = require('./controllers/user-controller');
 const listUserController = require('./controllers/list-user-controller');
+const itemCommentController = require('./controllers/item-comment-controller');
 
 const router = express.Router();
 
@@ -17,6 +18,8 @@ router.get('/user/current', auth, userController.getCurrent);
 router.post('/list/:id/user', auth, listUserController.addUser);
 router.patch('/list/:listId/user/:userId', auth, listUserController.updateUser);
 router.delete('/list/:listId/user/:userId', auth, listUserController.deleteUser);
+
+router.post('/list/:listId/item/:itemId/comment', auth, itemCommentController.createComment);
 
 router.get('/list', auth, listController.getLists);
 router.get('/list/trash', auth, listController.getDeletedLists);
