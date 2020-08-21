@@ -19,7 +19,7 @@ const generateAuthToken = (userId) => {
 const omitPassword = (user) => {
   const { password, ...userWithoutPassword } = user;
   return userWithoutPassword;
-}
+};
 
 module.exports = {
   async signUp(req, res) {

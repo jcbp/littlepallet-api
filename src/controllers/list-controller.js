@@ -29,6 +29,15 @@ const cloneChildLists = async (db, name, origin) => {
   return childLists;
 };
 
+const mergeArrayOfObjects = (arrayA, arrayB, prop) => {
+  return arrayA.map(itemA => {
+    const itemB = arrayB.find(item => {
+      return item[prop] == itemA[prop];
+    });
+    return Object.assign(itemA, itemB);
+  });
+};
+
 module.exports = {
   async getLists(req, res) {
     console.log('getLists');
@@ -92,6 +101,18 @@ module.exports = {
           { users: { $elemMatch: { email: req.user.email } } }
         ],
       });
+      
+      const emails = list.users.map(user => user.email);
+
+      const users = await db.collection('users').find({
+        email: { $in: emails }
+      }).project({
+        _id: 0,
+        name: 1,
+        email: 1
+      }).toArray();
+
+      list.users = mergeArrayOfObjects(list.users, users, 'email');
 
       dbConn.close();
       if(list) {
