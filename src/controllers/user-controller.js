@@ -31,25 +31,20 @@ module.exports = {
         return res.status(400).send(error.details[0].message);
       }
 
-      const db = await dbConn.open();
-
       const email = req.body.email.toLowerCase();
-      let user = await db.collection('users').findOne({
+      let user = await dbConn.getCollection('users').findOne({
         email: email
       });
       if(user) {
-        dbConn.close();
         return res.status(400).send('User already registered');
       }
 
-      user = await db.collection('users').insertOne({
+      user = await dbConn.getCollection('users').insertOne({
         'name': req.body.name,
         'email': email,
         'password': await bcrypt.hash(req.body.password, 10)
       });
       user = user.ops.pop();
-
-      dbConn.close();
 
       res
         .status(200)
@@ -74,13 +69,9 @@ module.exports = {
     try {
       console.log('login');
 
-      const db = await dbConn.open();
-
-      const user = await db.collection('users').findOne({
+      const user = await dbConn.getCollection('users').findOne({
         email: req.body.email.toLowerCase()
       });
-
-      dbConn.close();
 
       if(user && bcrypt.compareSync(req.body.password, user.password)) {
         const userWithoutPassword = omitPassword(user);

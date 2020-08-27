@@ -4,9 +4,7 @@ const ObjectID = require('mongodb').ObjectID;
 module.exports = {
   async getTemplates(req, res) {
     try {
-      const db = await dbConn.open();
-
-      const lists = await db.collection('lists').find({
+      const lists = await dbConn.getCollection('lists').find({
         isTemplate: true
       }).project({
         name: 1,
@@ -14,7 +12,6 @@ module.exports = {
         category: 1
       }).toArray();
 
-      dbConn.close();
       res.status(200).send(lists);
     }
     catch(e) {
@@ -26,13 +23,11 @@ module.exports = {
     try {
       console.log('createTemplate', req.body);
 
-      const db = await dbConn.open();
-
-      const origin = await db.collection('lists').findOne({
+      const origin = await dbConn.getCollection('lists').findOne({
         _id: ObjectID(req.params.listId)
       });
 
-      const list = await db.collection('lists').insertOne({
+      const list = await dbConn.getCollection('lists').insertOne({
         'name': req.body.name,
         'description': req.body.description,
         'isTemplate': true,
@@ -44,7 +39,6 @@ module.exports = {
         'items': []
       });
 
-      dbConn.close();
       res.status(200).send(list.ops.pop());
     }
     catch(e) {

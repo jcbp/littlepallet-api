@@ -5,10 +5,10 @@ const cloneChildLists = async (db, name, origin) => {
   const childLists = [];
 
   await Promise.all(origin.childLists.map(async childList => {
-    const childOrigin = await db.collection('lists').findOne({
+    const childOrigin = await dbConn.getCollection('lists').findOne({
       _id: ObjectID(childList['0'])
     });
-    const list = await db.collection('lists').insertOne({
+    const list = await dbConn.getCollection('lists').insertOne({
       'name': `${name} - ${childOrigin.name}`,
       'description': childOrigin.description,
       'fieldLastIndex': childOrigin.fieldLastIndex,
@@ -42,8 +42,7 @@ module.exports = {
   async getLists(req, res) {
     console.log('getLists');
     try {
-      const db = await dbConn.open();
-      const lists = await db.collection('lists').find({
+      const lists = await dbConn.getCollection('lists').find({
         $or: [ { isTemplate: { $exists: false } }, { isTemplate: false } ],
         status: { $ne: 'deleted' },
         $or: [
@@ -54,10 +53,10 @@ module.exports = {
         name: 1,
         description: 1,
         users: 1,
-        owner: 1
+        owner: 1,
+        tags: 1
       }).toArray();
 
-      dbConn.close();
       res.status(200).send(lists);
     }
     catch(e) {
@@ -69,8 +68,7 @@ module.exports = {
   async getDeletedLists(req, res) {
     console.log('getDeletedLists');
     try {
-      const db = await dbConn.open();
-      const lists = await db.collection('lists').find({
+      const lists = await dbConn.getCollection('lists').find({
         $or: [ { isTemplate: { $exists: false } }, { isTemplate: false } ],
         status: 'deleted',
         owner: req.user.email
@@ -79,7 +77,6 @@ module.exports = {
         description: 1
       }).toArray();
 
-      dbConn.close();
       res.status(200).send(lists);
     }
     catch(e) {
@@ -91,9 +88,7 @@ module.exports = {
   async getList(req, res) {
     console.log('getList');
     try {
-      const db = await dbConn.open();
-
-      const list = await db.collection('lists').findOne({
+      const list = await dbConn.getCollection('lists').findOne({
         _id: ObjectID(req.params.id),
         $or: [
           { isTemplate: true },
@@ -102,9 +97,9 @@ module.exports = {
         ],
       });
       
-      const emails = list.users.map(user => user.email);
+      const emails = (list.users || []).map(user => user.email);
 
-      const users = await db.collection('users').find({
+      const users = await dbConn.getCollection('users').find({
         email: { $in: emails }
       }).project({
         _id: 0,
@@ -112,9 +107,8 @@ module.exports = {
         email: 1
       }).toArray();
 
-      list.users = mergeArrayOfObjects(list.users, users, 'email');
+      list.users = mergeArrayOfObjects(list.users || [], users, 'email');
 
-      dbConn.close();
       if(list) {
         res.status(200).send(list);
       }
@@ -134,8 +128,7 @@ module.exports = {
     try {
       console.log('createList', req.body);
 
-      const db = await dbConn.open();
-      const list = await db.collection('lists').insertOne({
+      const list = await dbConn.getCollection('lists').insertOne({
         'name': req.body.name,
         'owner': req.user.email,
         'description': req.body.description,
@@ -150,7 +143,6 @@ module.exports = {
         'items': []
       });
 
-      dbConn.close();
       res.status(200).send(list.ops.pop());
     }
     catch(e) {
@@ -163,9 +155,7 @@ module.exports = {
     try {
       console.log('createListFromAnother', req.body);
 
-      const db = await dbConn.open();
-
-      const origin = await db.collection('lists').findOne({
+      const origin = await dbConn.getCollection('lists').findOne({
         _id: ObjectID(req.params.id)
       });
 
@@ -173,7 +163,7 @@ module.exports = {
         ? await cloneChildLists(db, req.body.name, origin)
         : [];
 
-      const list = await db.collection('lists').insertOne({
+      const list = await dbConn.getCollection('lists').insertOne({
         'name': req.body.name,
         'owner': req.user.email,
         'description': req.body.description,
@@ -189,7 +179,6 @@ module.exports = {
         'items': []
       });
 
-      dbConn.close();
       res.status(200).send(list.ops.pop());
     }
     catch(e) {
@@ -201,10 +190,9 @@ module.exports = {
   async updateList(req, res) {
     console.log('updateList', req.params, req.body.name);
     try {
-      const db = await dbConn.open();
-
       const updateData = [
         'name',
+        'tags',
         'childLists',
         'isTemplate',
         'status',
@@ -217,7 +205,7 @@ module.exports = {
         return data;
       }, {});
 
-      const list = await db.collection('lists').findOneAndUpdate(
+      const list = await dbConn.getCollection('lists').findOneAndUpdate(
         {
           _id: ObjectID(req.params.id),
           $or: [
@@ -235,7 +223,6 @@ module.exports = {
         { returnOriginal: false }
       );
 
-      dbConn.close();
       res.status(200).send(list.value);
     }
     catch(e) {
@@ -247,14 +234,11 @@ module.exports = {
   async deleteList(req, res) {
     console.log('deleteList', req.params, req.body.name);
     try {
-      const db = await dbConn.open();
-
-      const list = await db.collection('lists').deleteOne({
+      const list = await dbConn.getCollection('lists').deleteOne({
         _id: ObjectID(req.params.id),
         owner: req.user.email
       });
 
-      dbConn.close();
       res.status(200).send({ _id: req.params.id });
     }
     catch(e) {
@@ -266,20 +250,17 @@ module.exports = {
   async updateView(req, res) {
     console.log('updateView', req.params, req.body.name);
     try {
-      const db = await dbConn.open();
-
       const updateData = Object.entries(req.body).reduce((data, prop) => {
         data['views.' + prop[0]] = prop[1];
         return data;
       }, {});
 
-      const list = await db.collection('lists').findOneAndUpdate(
+      const list = await dbConn.getCollection('lists').findOneAndUpdate(
         { _id: ObjectID(req.params.id) },
         { $set: updateData },
         { returnOriginal: false }
       );
 
-      dbConn.close();
       res.status(200).send(list.value.views);
     }
     catch(e) {

@@ -2,12 +2,12 @@ const dbConn = require('../db-conn');
 const ObjectID = require('mongodb').ObjectID;
 
 const getNextUserIndex = async (db, listId) => {
-    await db.collection('lists').updateOne(
+    await dbConn.getCollection('lists').updateOne(
       { _id: ObjectID(listId) },
       { $inc: { userLastIndex: 1 } }
     );
 
-    const list = await db.collection('lists').find({
+    const list = await dbConn.getCollection('lists').find({
       _id: ObjectID(listId),
     }).project({
       _id: 0,
@@ -21,21 +21,18 @@ module.exports = {
   async addUser(req, res) {
     console.log('addUser', req.params, req.body);
     try {
-      const db = await dbConn.open();
-
       req.body._id = await getNextUserIndex(db, req.params.id);
       
-      await db.collection('lists').updateOne(
+      await dbConn.getCollection('lists').updateOne(
         { _id: ObjectID(req.params.id) },
         { $push: { 'users': req.body } }
       );
 
-      const list = await db.collection('lists').aggregate([
+      const list = await dbConn.getCollection('lists').aggregate([
         { $match: { _id: ObjectID(req.params.id) } },
         { $project: { _id: 0, user: { $arrayElemAt: ['$users', -1] } } }
       ]).toArray();
 
-      dbConn.close();
       res.status(200).send(list.pop().user);
     }
     catch(e) {
@@ -48,22 +45,20 @@ module.exports = {
     console.log('updateUser', req.params, req.body);
     try {
       const userId = parseInt(req.params.userId);
-      const db = await dbConn.open();
 
-      await db.collection('lists').updateOne(
+      await dbConn.getCollection('lists').updateOne(
         { _id: ObjectID(req.params.listId) },
         { $set: { [`users.$[user].${req.body.attr}`]: req.body.value } },
         { arrayFilters: [ { 'user._id': userId } ] }
       );
 
-      const list = await db.collection('lists').find({
+      const list = await dbConn.getCollection('lists').find({
         _id: ObjectID(req.params.listId),
       }).project({
         _id: 0,
         users: { $elemMatch: { _id: userId } }
       }).toArray();
 
-      dbConn.close();
       res.status(200).send(list[0].users && list[0].users[0]);
     }
     catch(e) {
@@ -76,19 +71,17 @@ module.exports = {
     console.log('deleteUser', req.params, req.body);
     try {
       const userId = parseInt(req.params.userId);
-      const db = await dbConn.open();
 
-      const list = await db.collection('lists').findOne({
+      const list = await dbConn.getCollection('lists').findOne({
         _id: ObjectID(req.params.listId)
       });
       const user = list.users.find(user => user._id === userId);
 
-      await db.collection('lists').updateOne(
+      await dbConn.getCollection('lists').updateOne(
         { _id: ObjectID(req.params.listId) },
         { $pull: { users: { _id: userId } } }
       );
 
-      dbConn.close();
       res.status(200).send(user);
     }
     catch(e) {

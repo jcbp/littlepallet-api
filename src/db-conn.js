@@ -5,22 +5,34 @@ const url = process.env.NODE_ENV === 'development'
   : 'mongodb+srv://adminDbUser:Np8lc88rTrNXNUDQ@cluster0.adroc.mongodb.net/littlepallet?retryWrites=true&w=majority';
 
 let client;
+let db;
 
 module.exports = {
-  async open() {
+  async connect() {
     try {
-      client = await MongoClient.connect(url, {useNewUrlParser: true});
-      const db = client.db('littlepallet');
+      client = await MongoClient.connect(url, {
+        useNewUrlParser: true,
+        // retry to connect for 60 times
+        reconnectTries: 60,
+        // wait 1 second before retrying
+        reconnectInterval: 1000
+      });
+      db = client.db('littlepallet');
 
       console.log('DB connection opened');
-      return db;
     }
     catch(err) {
       throw new Error('Error connecting to DB', err);
     }
   },
-  close() {
-    client.close();
+  async close() {
+    await client.close();
     console.log('DB connection closed');
+  },
+  getDb() {
+    return db;
+  },
+  getCollection(collectionName) {
+    return db.collection(collectionName);
   }
 };

@@ -1,6 +1,7 @@
 const express = require('express');
 const bodyParser = require('body-parser');
 const apiRouter = require('./src/routes');
+const dbConn = require('./src/db-conn');
 
 const app = express();
 const port = process.env.PORT || 3000;
@@ -23,6 +24,8 @@ const allowCrossDomain = (req, res, next) => {
 app.use(allowCrossDomain);
 app.use('/api', apiRouter);
 
-app.listen(port, () => console.log(
-  `Env: ${process.env.NODE_ENV}. Listening on port ${port}`
-));
+dbConn.connect().then(() => {
+  app.listen(port, () => console.log(
+    `Env: ${process.env.NODE_ENV}. Listening on port ${port}`
+  ));
+});

@@ -13,19 +13,16 @@ module.exports = {
     }
 
     try {
-      const db = await dbConn.open();
-
-      await db.collection('lists').updateOne(
+      await dbConn.getCollection('lists').updateOne(
         { _id: ObjectID(req.params.id) },
         { $push: { 'items': req.body } }
       );
 
-      const list = await db.collection('lists').aggregate([
+      const list = await dbConn.getCollection('lists').aggregate([
         { $match: { _id: ObjectID(req.params.id) } },
         { $project: { _id: 0, item: { $arrayElemAt: ['$items', -1] } } }
       ]).toArray();
 
-      dbConn.close();
       res.status(200).send(list[0].item);
     }
     catch(e) {
@@ -37,20 +34,18 @@ module.exports = {
   async createItemAtPosition(req, res) {
     console.log('createItemAtPosition', req.params, req.body);
     try {
-      const db = await dbConn.open();
       const position = parseInt(req.params.position);
 
-      await db.collection('lists').updateOne(
+      await dbConn.getCollection('lists').updateOne(
         { _id: ObjectID(req.params.id) },
         { $push: { 'items': { $each: [ req.body ], $position: position } } }
       );
 
-      const list = await db.collection('lists').aggregate([
+      const list = await dbConn.getCollection('lists').aggregate([
         { $match: { _id: ObjectID(req.params.id) } },
         { $project: { _id: 0, item: { $arrayElemAt: ['$items', position] } } }
       ]).toArray();
 
-      dbConn.close();
       res.status(200).send(list[0].item);
     }
     catch(e) {
@@ -62,22 +57,19 @@ module.exports = {
   async updateItem(req, res) {
     console.log('updateItem', req.params, req.body);
     try {
-      const db = await dbConn.open();
-
-      await db.collection('lists').updateOne(
+      await dbConn.getCollection('lists').updateOne(
         { _id: ObjectID(req.params.listId) },
         { $set: { 'items.$[item]': req.body } },
         { arrayFilters: [ { 'item._id': req.params.itemId } ] }
       );
 
-      const list = await db.collection('lists').find({
+      const list = await dbConn.getCollection('lists').find({
         _id: ObjectID(req.params.listId),
       }).project({
         _id: 0,
         items: { $elemMatch: { _id: req.params.itemId } }
       }).toArray();
 
-      dbConn.close();
       res.status(200).send(list[0].items[0]);
     }
     catch(e) {
@@ -89,22 +81,19 @@ module.exports = {
   async updateItemField(req, res) {
     console.log('updateItemField', req.params, req.body);
     try {
-      const db = await dbConn.open();
-
-      await db.collection('lists').updateOne(
+      await dbConn.getCollection('lists').updateOne(
         { _id: ObjectID(req.params.listId) },
         { $set: { [`items.$[item].${req.params.fieldId}`]: req.body.value } },
         { arrayFilters: [ { 'item._id': req.params.itemId } ] }
       );
 
-      const list = await db.collection('lists').find({
+      const list = await dbConn.getCollection('lists').find({
         _id: ObjectID(req.params.listId),
       }).project({
         _id: 0,
         items: { $elemMatch: { _id: req.params.itemId } }
       }).toArray();
 
-      dbConn.close();
       res.status(200).send(list[0].items);
     }
     catch(e) {
@@ -116,21 +105,17 @@ module.exports = {
   async deleteItem(req, res) {
     console.log('deleteItem', req.params, req.body);
     try {
-      const db = await dbConn.open();
-
-      const list = await db.collection('lists').find({
+      const list = await dbConn.getCollection('lists').find({
         _id: ObjectID(req.params.listId),
       }).project({
         _id: 0,
         items: { $elemMatch: { _id: req.params.itemId } }
       }).toArray();
 
-      await db.collection('lists').updateOne(
+      await dbConn.getCollection('lists').updateOne(
         { _id: ObjectID(req.params.listId) },
         { $pull: { items: { _id: req.params.itemId } } }
       );
-
-      dbConn.close();
 
       const items = list.pop().items;
       res.status(200).send(items ? items.pop() : {});
