@@ -1,7 +1,7 @@
 const dbConn = require('../db-conn');
 const ObjectID = require('mongodb').ObjectID;
 
-const getNextFieldIndex = async (db, listId) => {
+const getNextFieldIndex = async (listId) => {
     await dbConn.getCollection('lists').updateOne(
       { _id: ObjectID(listId) },
       { $inc: { fieldLastIndex: 1 } }
@@ -21,10 +21,16 @@ module.exports = {
   async createField(req, res) {
     console.log('createField', req.params, req.body);
     try {
-      req.body._id = await getNextFieldIndex(db, req.params.id);
+      req.body._id = await getNextFieldIndex(req.params.id);
       
       await dbConn.getCollection('lists').updateOne(
-        { _id: ObjectID(req.params.id) },
+        {
+          _id: ObjectID(req.params.id),
+          $or: [
+            { owner: req.user.email },
+            { users: { $elemMatch: { email: req.user.email } } }
+          ]
+        },
         { $push: { 'fields': req.body } }
       );
 
@@ -49,7 +55,13 @@ module.exports = {
       req.body._id = await getNextFieldIndex(db, req.params.id);
 
       await dbConn.getCollection('lists').updateOne(
-        { _id: ObjectID(req.params.id) },
+        {
+          _id: ObjectID(req.params.id),
+          $or: [
+            { owner: req.user.email },
+            { users: { $elemMatch: { email: req.user.email } } }
+          ]
+        },
         { $push: { 'fields': { $each: [ req.body ], $position: position } } }
       );
 
@@ -72,7 +84,13 @@ module.exports = {
       const fieldId = parseInt(req.params.fieldId);
 
       await dbConn.getCollection('lists').updateOne(
-        { _id: ObjectID(req.params.listId) },
+        {
+          _id: ObjectID(req.params.listId),
+          $or: [
+            { owner: req.user.email },
+            { users: { $elemMatch: { email: req.user.email } } }
+          ]
+        },
         { $set: { [`fields.$[field].${req.body.attr}`]: req.body.value } },
         { arrayFilters: [ { 'field._id': fieldId } ] }
       );
@@ -98,7 +116,13 @@ module.exports = {
       const fieldId = parseInt(req.params.fieldId);
 
       await dbConn.getCollection('lists').updateOne(
-        { _id: ObjectID(req.params.listId) },
+        {
+          _id: ObjectID(req.params.listId),
+          $or: [
+            { owner: req.user.email },
+            { users: { $elemMatch: { email: req.user.email } } }
+          ]
+        },
         { $pull: { fields: { _id: fieldId } } }
       );
 

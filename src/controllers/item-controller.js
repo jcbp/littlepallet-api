@@ -14,7 +14,13 @@ module.exports = {
 
     try {
       await dbConn.getCollection('lists').updateOne(
-        { _id: ObjectID(req.params.id) },
+        {
+          _id: ObjectID(req.params.id),
+          $or: [
+            { owner: req.user.email },
+            { users: { $elemMatch: { email: req.user.email } } }
+          ]
+        },
         { $push: { 'items': req.body } }
       );
 
@@ -37,7 +43,13 @@ module.exports = {
       const position = parseInt(req.params.position);
 
       await dbConn.getCollection('lists').updateOne(
-        { _id: ObjectID(req.params.id) },
+        {
+          _id: ObjectID(req.params.id),
+          $or: [
+            { owner: req.user.email },
+            { users: { $elemMatch: { email: req.user.email } } }
+          ]
+        },
         { $push: { 'items': { $each: [ req.body ], $position: position } } }
       );
 
@@ -58,7 +70,13 @@ module.exports = {
     console.log('updateItem', req.params, req.body);
     try {
       await dbConn.getCollection('lists').updateOne(
-        { _id: ObjectID(req.params.listId) },
+        {
+          _id: ObjectID(req.params.listId),
+          $or: [
+            { owner: req.user.email },
+            { users: { $elemMatch: { email: req.user.email } } }
+          ]
+        },
         { $set: { 'items.$[item]': req.body } },
         { arrayFilters: [ { 'item._id': req.params.itemId } ] }
       );
@@ -82,7 +100,13 @@ module.exports = {
     console.log('updateItemField', req.params, req.body);
     try {
       await dbConn.getCollection('lists').updateOne(
-        { _id: ObjectID(req.params.listId) },
+        {
+          _id: ObjectID(req.params.listId),
+          $or: [
+            { owner: req.user.email },
+            { users: { $elemMatch: { email: req.user.email } } }
+          ]
+        },
         { $set: { [`items.$[item].${req.params.fieldId}`]: req.body.value } },
         { arrayFilters: [ { 'item._id': req.params.itemId } ] }
       );
@@ -107,6 +131,10 @@ module.exports = {
     try {
       const list = await dbConn.getCollection('lists').find({
         _id: ObjectID(req.params.listId),
+        $or: [
+          { owner: req.user.email },
+          { users: { $elemMatch: { email: req.user.email } } }
+        ]
       }).project({
         _id: 0,
         items: { $elemMatch: { _id: req.params.itemId } }
