@@ -52,7 +52,7 @@ module.exports = {
     try {
       const position = parseInt(req.params.position);
 
-      req.body._id = await getNextFieldIndex(db, req.params.id);
+      req.body._id = await getNextFieldIndex(req.params.id);
 
       await dbConn.getCollection('lists').updateOne(
         {

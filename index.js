@@ -1,5 +1,6 @@
 const express = require('express');
 const bodyParser = require('body-parser');
+const path = require('path');
 const apiRouter = require('./src/routes');
 const dbConn = require('./src/db-conn');
 
@@ -20,6 +21,8 @@ const allowCrossDomain = (req, res, next) => {
   res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
   next();
 };
+
+app.use(express.static(path.join(__dirname, 'public')));
 
 app.use(allowCrossDomain);
 app.use('/api', apiRouter);

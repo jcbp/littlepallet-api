@@ -1,5 +1,8 @@
 const express = require('express');
 const auth = require('./middleware/auth');
+const multer  = require('multer');
+const path = require('path');
+
 const listController = require('./controllers/list-controller');
 const templateController = require('./controllers/template-controller');
 const itemController = require('./controllers/item-controller');
@@ -9,6 +12,7 @@ const userController = require('./controllers/user-controller');
 const listUserController = require('./controllers/list-user-controller');
 const itemCommentController = require('./controllers/item-comment-controller');
 
+const upload = multer({dest: path.join(__dirname, '../public/uploads/')});
 const router = express.Router();
 
 router.post('/user', userController.signUp);
@@ -20,6 +24,7 @@ router.patch('/list/:listId/user/:userId', auth, listUserController.updateUser);
 router.delete('/list/:listId/user/:userId', auth, listUserController.deleteUser);
 
 router.post('/list/:listId/item/:itemId/comment', auth, itemCommentController.createComment);
+router.post('/list/:listId/item/:itemId/comment/image', auth, upload.single('image'), itemCommentController.createComment);
 
 router.get('/list', auth, listController.getLists);
 router.get('/list/trash', auth, listController.getDeletedLists);
