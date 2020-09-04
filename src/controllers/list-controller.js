@@ -224,6 +224,10 @@ module.exports = {
         { returnOriginal: false }
       );
 
+      if(!list.value) {
+        throw {message: 'List does not exist or you have no permissions'};
+      }
+
       res.status(200).send(list.value);
     }
     catch(e) {
