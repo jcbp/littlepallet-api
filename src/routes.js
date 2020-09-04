@@ -36,7 +36,7 @@ router.delete('/list/:id', auth, listController.deleteList);
 router.patch('/list/:id/view', auth, listController.updateView);
 
 router.post('/template/from/:listId', templateController.createTemplate);
-router.get('/template', templateController.getTemplates);
+router.get('/template/:lang', templateController.getTemplates);
 
 router.post('/list/:id/item', auth, itemController.createItem);
 router.post('/list/:id/item/at/:position', auth, itemController.createItemAtPosition);

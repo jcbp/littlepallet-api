@@ -195,6 +195,7 @@ module.exports = {
         'tags',
         'childLists',
         'isTemplate',
+        'lang',
         'status',
         'category',
         'commentsEnabled'

@@ -3,9 +3,11 @@ const ObjectID = require('mongodb').ObjectID;
 
 module.exports = {
   async getTemplates(req, res) {
+    console.log('getTemplates', req.params);
     try {
       const lists = await dbConn.getCollection('lists').find({
-        isTemplate: true
+        isTemplate: true,
+        lang: req.params.lang
       }).project({
         name: 1,
         description: 1,
