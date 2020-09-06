@@ -138,7 +138,7 @@ module.exports = {
         'conditions': [],
         'filters': [],
         'users': [],
-        'fields': [{ name: 'New field', type: 'text' }],
+        'fields': [{ _id: '0', name: 'New field', type: 'text' }],
         'views': {},
         'items': []
       });
