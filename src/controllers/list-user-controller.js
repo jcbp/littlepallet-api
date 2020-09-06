@@ -1,7 +1,7 @@
 const dbConn = require('../db-conn');
 const ObjectID = require('mongodb').ObjectID;
 
-const getNextUserIndex = async (db, listId) => {
+const getNextUserIndex = async (listId) => {
     await dbConn.getCollection('lists').updateOne(
       { _id: ObjectID(listId) },
       { $inc: { userLastIndex: 1 } }
@@ -21,7 +21,7 @@ module.exports = {
   async addUser(req, res) {
     console.log('addUser', req.params, req.body);
     try {
-      req.body._id = await getNextUserIndex(db, req.params.id);
+      req.body._id = await getNextUserIndex(req.params.id);
       
       await dbConn.getCollection('lists').updateOne(
         { _id: ObjectID(req.params.id) },
