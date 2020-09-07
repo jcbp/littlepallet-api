@@ -1,7 +1,7 @@
 const dbConn = require('../db-conn');
 const ObjectID = require('mongodb').ObjectID;
 
-const cloneChildLists = async (name, origin) => {
+const cloneChildLists = async (current, origin) => {
   const childLists = [];
 
   await Promise.all(origin.childLists.map(async childList => {
@@ -9,13 +9,14 @@ const cloneChildLists = async (name, origin) => {
       _id: ObjectID(childList['0'])
     });
     const list = await dbConn.getCollection('lists').insertOne({
-      'name': `${name} - ${childOrigin.name}`,
+      'name': `${current.name} - ${childOrigin.name}`,
+      'owner': current.email,
       'description': childOrigin.description,
       'fieldLastIndex': childOrigin.fieldLastIndex,
       'filterLastIndex': childOrigin.filterLastIndex,
-      'userLastIndex': childOrigin.userLastIndex,
+      'userLastIndex': 0,
       'filters': childOrigin.filters,
-      'users': childOrigin.users,
+      'users': [],
       'fields': childOrigin.fields,
       'views': childOrigin.views,
       'items': []
@@ -160,7 +161,12 @@ module.exports = {
       });
 
       const childLists = origin.childLists
-        ? await cloneChildLists(req.body.name, origin)
+        ? await cloneChildLists({
+            name: req.body.name,
+            email: req.user.email
+          },
+          origin
+        )
         : [];
 
       const list = await dbConn.getCollection('lists').insertOne({
@@ -170,9 +176,9 @@ module.exports = {
         'commentsEnabled': origin.commentsEnabled,
         'fieldLastIndex': origin.fieldLastIndex,
         'filterLastIndex': origin.filterLastIndex,
-        'userLastIndex': origin.userLastIndex,
+        'userLastIndex': 0,
         'filters': origin.filters,
-        'users': origin.users,
+        'users': [],
         'fields': origin.fields,
         'views': origin.views,
         'childLists': childLists,
