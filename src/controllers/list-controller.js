@@ -9,7 +9,8 @@ const cloneChildLists = async (current, origin) => {
       _id: ObjectID(childList['0'])
     });
     const list = await dbConn.getCollection('lists').insertOne({
-      'name': `${current.name} - ${childOrigin.name}`,
+      'name': childOrigin.name,
+      'isChildList': true,
       'owner': current.email,
       'description': childOrigin.description,
       'fieldLastIndex': childOrigin.fieldLastIndex,
@@ -19,7 +20,8 @@ const cloneChildLists = async (current, origin) => {
       'users': [],
       'fields': childOrigin.fields,
       'views': childOrigin.views,
-      'items': []
+      'items': [],
+      'tags': `${current.name},${childOrigin.name}`
     });
     childLists.push({
       _id: childList._id,
@@ -39,12 +41,15 @@ const mergeArrayOfObjects = (arrayA, arrayB, prop) => {
   });
 };
 
-module.exports = {
+const listController = {
   async getLists(req, res) {
     console.log('getLists');
     try {
       const lists = await dbConn.getCollection('lists').find({
-        $or: [ { isTemplate: { $exists: false } }, { isTemplate: false } ],
+        $and: [
+          { $or: [ { isTemplate: { $exists: false } }, { isTemplate: false } ] },
+          { $or: [ { isChildList: { $exists: false } }, { isChildList: false } ] },
+        ],
         status: { $ne: 'deleted' },
         $or: [
           { owner: req.user.email },
@@ -234,7 +239,21 @@ module.exports = {
         throw {message: 'List does not exist or you have no permissions'};
       }
 
-      res.status(200).send(list.value);
+      if(updateData.status === 'deleted' && list.value.childLists) {
+        Promise.all(list.value.childLists.map(async childList => {
+          await listController.updateList({
+            user: req.user,
+            params: { id: childList[0].toString() },
+            body: {
+              status: 'deleted'
+            }
+          });
+        }));
+      }
+
+      if(res) {
+        res.status(200).send(list.value);
+      }
     }
     catch(e) {
       console.log(e);
@@ -280,3 +299,4 @@ module.exports = {
     }
   }
 };
+module.exports = listController;
