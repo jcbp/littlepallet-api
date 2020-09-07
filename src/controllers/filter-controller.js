@@ -1,7 +1,7 @@
 const dbConn = require('../db-conn');
 const ObjectID = require('mongodb').ObjectID;
 
-const getNextFilterIndex = async (db, listId) => {
+const getNextFilterIndex = async (listId) => {
     await dbConn.getCollection('lists').updateOne(
       { _id: ObjectID(listId) },
       { $inc: { filterLastIndex: 1 } }
@@ -21,7 +21,7 @@ module.exports = {
   async createFilter(req, res) {
     console.log('createFilter', req.params, req.body);
     try {
-      req.body._id = await getNextFilterIndex(db, req.params.id);
+      req.body._id = await getNextFilterIndex(req.params.id);
       
       await dbConn.getCollection('lists').updateOne(
         { _id: ObjectID(req.params.id) },
@@ -46,7 +46,7 @@ module.exports = {
     try {
       const position = parseInt(req.params.position);
 
-      req.body._id = await getNextFilterIndex(db, req.params.id);
+      req.body._id = await getNextFilterIndex(req.params.id);
 
       await dbConn.getCollection('lists').updateOne(
         { _id: ObjectID(req.params.id) },

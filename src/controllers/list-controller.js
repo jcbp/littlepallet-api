@@ -1,7 +1,7 @@
 const dbConn = require('../db-conn');
 const ObjectID = require('mongodb').ObjectID;
 
-const cloneChildLists = async (db, name, origin) => {
+const cloneChildLists = async (name, origin) => {
   const childLists = [];
 
   await Promise.all(origin.childLists.map(async childList => {
@@ -160,7 +160,7 @@ module.exports = {
       });
 
       const childLists = origin.childLists
-        ? await cloneChildLists(db, req.body.name, origin)
+        ? await cloneChildLists(req.body.name, origin)
         : [];
 
       const list = await dbConn.getCollection('lists').insertOne({
