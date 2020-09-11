@@ -141,7 +141,13 @@ module.exports = {
       }).toArray();
 
       await dbConn.getCollection('lists').updateOne(
-        { _id: ObjectID(req.params.listId) },
+        {
+          _id: ObjectID(req.params.listId),
+          $or: [
+            { owner: req.user.email },
+            { users: { $elemMatch: { email: req.user.email } } }
+          ]
+        },
         { $pull: { items: { _id: req.params.itemId } } }
       );
 
