@@ -83,7 +83,7 @@ module.exports = {
           access_token: jwt.sign(
             userWithoutPassword,
             config.secret,
-            { expiresIn: '1h' }
+            { expiresIn: '7d' }
           )
         });
       }
