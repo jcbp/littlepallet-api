@@ -29,6 +29,28 @@ module.exports = {
     await client.close();
     console.log('DB connection closed');
   },
+  async withTransaction(asyncCallback) {
+    const session = await client.startSession();
+    const transactionOptions = {
+      readPreference: 'primary',
+      readConcern: { level: 'local' },
+      writeConcern: { w: 'majority' }
+    };
+    try {
+      await session.withTransaction(
+        asyncCallback,
+        transactionOptions
+      );
+    }
+    catch(e) {
+      throw new Error(
+        'The transaction was aborted due to an unexpected error: ' + e
+      );
+    }
+    finally {
+      await session.endSession();
+    }
+  },
   getDb() {
     return db;
   },

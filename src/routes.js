@@ -40,6 +40,7 @@ router.get('/template/:lang', templateController.getTemplates);
 
 router.post('/list/:id/item', auth, itemController.createItem);
 router.post('/list/:id/item/at/:position', auth, itemController.createItemAtPosition);
+router.patch('/list/:listId/item/:itemId/move/:position', auth, itemController.moveItemAtPosition);
 router.patch('/list/:listId/item/:itemId', auth, itemController.updateItem);
 router.delete('/list/:listId/item/:itemId', auth, itemController.deleteItem);
 router.patch('/list/:listId/item/:itemId/field/:fieldId', auth, itemController.updateItemField);
