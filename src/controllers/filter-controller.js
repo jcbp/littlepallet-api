@@ -2,19 +2,52 @@ const dbConn = require('../db-conn');
 const ObjectID = require('mongodb').ObjectID;
 
 const getNextFilterIndex = async (listId) => {
-    await dbConn.getCollection('lists').updateOne(
+    const list = await dbConn.getCollection('lists').findOneAndUpdate(
       { _id: ObjectID(listId) },
-      { $inc: { filterLastIndex: 1 } }
+      { $inc: { filterLastIndex: 1 } },
+      { returnOriginal: false }
     );
+    return list.value.filterLastIndex;
+};
 
-    const list = await dbConn.getCollection('lists').find({
+const deleteFilter = async (listId, filterId, user) => {
+  filterId = parseInt(filterId);
+
+  const list = await dbConn.getCollection('lists').findOneAndUpdate(
+    {
       _id: ObjectID(listId),
-    }).project({
-      _id: 0,
-      filterLastIndex: 1
-    }).toArray();
+      $or: [
+        { owner: user.email },
+        { users: { $elemMatch: { email: user.email } } }
+      ]
+    },
+    { $pull: { filters: { _id: filterId } } },
+    { returnOriginal: true }
+  );
 
-    return list.pop().filterLastIndex;
+  return list.value.filters.find(filter => filter._id === filterId);
+};
+
+const createFilterAtPosition = async (listId, filter, user, position) => {
+  position = parseInt(position);
+
+  if(!filter._id) {
+    filter._id = await getNextFilterIndex(listId);
+  }
+
+  const list = await dbConn.getCollection('lists').findOneAndUpdate(
+    {
+      _id: ObjectID(listId),
+      $or: [
+        { owner: user.email },
+        { users: { $elemMatch: { email: user.email } } }
+      ]
+    },
+    { $push: { 'filters': { $each: [ filter ], $position: position } } },
+    { returnOriginal: false }
+  );
+
+  return list.value.filters[position];
 };
 
 module.exports = {
@@ -41,24 +74,41 @@ module.exports = {
     }
   },
 
-  async createFieldAtPosition(req, res) {
-    console.log('createFieldAtPosition', req.params, req.body);
+  async createFilterAtPosition(req, res) {
+    console.log('createFilterAtPosition', req.params, req.body);
     try {
-      const position = parseInt(req.params.position);
-
-      req.body._id = await getNextFilterIndex(req.params.id);
-
-      await dbConn.getCollection('lists').updateOne(
-        { _id: ObjectID(req.params.id) },
-        { $push: { 'fields': { $each: [ req.body ], $position: position } } }
+      const filter = await createFilterAtPosition(
+        req.params.id,
+        req.body,
+        req.user,
+        req.params.position
       );
+      res.status(200).send(filter);
+    }
+    catch(e) {
+      console.log(e);
+      res.status(500).send(e);
+    }
+  },
 
-      const list = await dbConn.getCollection('lists').aggregate([
-        { $match: { _id: ObjectID(req.params.id) } },
-        { $project: { _id: 0, field: { $arrayElemAt: ['$fields', position] } } }
-      ]).toArray();
-
-      res.status(200).send(list[0].field);
+  async moveFilterAtPosition(req, res) {
+    console.log('moveFilterAtPosition', req.params, req.body);
+    try {
+      let relocatedFilter;
+      await dbConn.withTransaction(async () => {
+        const filterToMove = await deleteFilter(
+          req.params.listId,
+          req.params.filterId,
+          req.user
+        );
+        relocatedFilter = await createFilterAtPosition(
+          req.params.listId,
+          filterToMove,
+          req.user,
+          req.params.position
+        );
+      });
+      res.status(200).send(relocatedFilter);
     }
     catch(e) {
       console.log(e);
@@ -92,24 +142,15 @@ module.exports = {
     }
   },
 
-  async deleteField(req, res) {
-    console.log('deleteField', req.params, req.body);
+  async deleteFilter(req, res) {
+    console.log('deleteFilter', req.params, req.body);
     try {
-      const fieldId = parseInt(req.params.fieldId);
-
-      await dbConn.getCollection('lists').updateOne(
-        { _id: ObjectID(req.params.listId) },
-        { $pull: { fields: { _id: fieldId } } }
+      const filter = await deleteFilter(
+        req.params.listId,
+        req.params.filterId,
+        req.user
       );
-
-      const fields = await dbConn.getCollection('lists').find({
-        _id: ObjectID(req.params.listId),
-      }).project({
-        _id: 0,
-        fields: 1
-      }).toArray();
-
-      res.status(200).send(fields.pop().fields);
+      res.status(200).send(filter);
     }
     catch(e) {
       console.log(e);

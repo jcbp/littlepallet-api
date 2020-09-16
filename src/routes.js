@@ -47,10 +47,14 @@ router.patch('/list/:listId/item/:itemId/field/:fieldId', auth, itemController.u
 
 router.post('/list/:id/field', auth, fieldController.createField);
 router.post('/list/:id/field/at/:position', auth, fieldController.createFieldAtPosition);
+router.patch('/list/:listId/field/:fieldId/move/:position', auth, fieldController.moveFieldAtPosition);
 router.patch('/list/:listId/field/:fieldId', auth, fieldController.updateField);
 router.delete('/list/:listId/field/:fieldId', auth, fieldController.deleteField);
 
 router.post('/list/:id/filter', auth, filterController.createFilter);
 router.patch('/list/:listId/filter/:filterId', auth, filterController.updateFilter);
+router.post('/list/:id/filter/at/:position', auth, filterController.createFilterAtPosition);
+router.patch('/list/:listId/filter/:filterId/move/:position', auth, filterController.moveFilterAtPosition);
+router.delete('/list/:listId/filter/:filterId', auth, filterController.deleteFilter);
 
 module.exports = router;
