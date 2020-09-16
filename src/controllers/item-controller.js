@@ -86,7 +86,7 @@ module.exports = {
   async createItemAtPosition(req, res) {
     console.log('createItemAtPosition', req.params, req.body);
     try {
-      const item = createItemAtPosition(
+      const item = await createItemAtPosition(
         req.params.id,
         req.body,
         req.user,
