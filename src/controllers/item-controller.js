@@ -3,19 +3,7 @@ const dbConn = require('../db-conn');
 const ObjectID = require('mongodb').ObjectID;
 
 const deleteItem = async (listId, itemId, user) => {
-
-  const list = await dbConn.getCollection('lists').find({
-    _id: ObjectID(listId),
-    $or: [
-      { owner: user.email },
-      { users: { $elemMatch: { email: user.email } } }
-    ]
-  }).project({
-    _id: 0,
-    items: { $elemMatch: { _id: itemId } }
-  }).toArray();
-
-  await dbConn.getCollection('lists').updateOne(
+  const list = await dbConn.getCollection('lists').findOneAndUpdate(
     {
       _id: ObjectID(listId),
       $or: [
@@ -23,11 +11,11 @@ const deleteItem = async (listId, itemId, user) => {
         { users: { $elemMatch: { email: user.email } } }
       ]
     },
-    { $pull: { items: { _id: itemId } } }
+    { $pull: { items: { _id: itemId } } },
+    { returnOriginal: true }
   );
 
-  const items = list.pop().items;
-  return items ? items.pop() : {};
+  return list.value.items.find(item => item._id === itemId);
 };
 
 const createItemAtPosition = async (listId, item, user, position) => {
@@ -44,7 +32,6 @@ const createItemAtPosition = async (listId, item, user, position) => {
     { $push: { 'items': { $each: [ item ], $position: position } } },
     { returnOriginal: false }
   );
-
   return list.value.items[position];
 };
 
