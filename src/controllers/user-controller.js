@@ -97,6 +97,36 @@ module.exports = {
     }
   },
 
+  async updateUserData(req, res) {
+    try {
+      const user = await dbConn.getCollection('users').findOne({
+        _id: ObjectID(req.params.id),
+      });
+
+      if(user && bcrypt.compareSync(req.body.currentPassword, user.password)) {
+        const updateData = {};
+        if(req.body.name) {
+          updateData.name = req.body.name;
+        }
+        if(req.body.newPassword) {
+          updateData.password = await bcrypt.hash(req.body.newPassword, 10);
+        }
+        const user = await dbConn.getCollection('users').findOneAndUpdate(
+          { _id: ObjectID(req.params.id) },
+          { $set: updateData }
+        );
+        res.status(200).send(omitPassword(user.value));
+      }
+      else {
+        res.status(401).send({message: 'Current password is invalid'});
+      }
+    }
+    catch(e) {
+      console.log(e);
+      res.status(500).send({message: e.message});
+    }
+  },
+
   getCurrent(req, res) {
     res.status(200).send(req.user);
   }

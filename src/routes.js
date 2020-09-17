@@ -18,6 +18,7 @@ const router = express.Router();
 router.post('/user', userController.signUp);
 router.post('/user/login', userController.login);
 router.get('/user/current', auth, userController.getCurrent);
+router.patch('/user/:id', auth, userController.updateUserData);
 
 router.post('/list/:id/user', auth, listUserController.addUser);
 router.patch('/list/:listId/user/:userId', auth, listUserController.updateUser);
