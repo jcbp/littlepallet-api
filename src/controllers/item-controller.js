@@ -1,4 +1,3 @@
-
 const dbConn = require('../db-conn');
 const ObjectID = require('mongodb').ObjectID;
 
@@ -35,15 +34,36 @@ const createItemAtPosition = async (listId, item, user, position) => {
   return list.value.items[position];
 };
 
+const createItemId = async (listId, userEmail) => {
+  const list = await dbConn.getCollection('lists').findOne(
+    {
+      _id: ObjectID(listId),
+      $or: [
+        { owner: userEmail },
+        { users: { $elemMatch: { email: userEmail } } }
+      ]
+    },
+    { items: 1 }
+  );
+  const newItemId = (
+    Math.max.apply(
+      null,
+      [-1, ...list.items.map(item => parseInt(item._id))]
+    ) + 1
+  ).toString();
+  console.log('newItemId', newItemId)
+  return newItemId;
+};
+
 module.exports = {
   async createItem(req, res) {
     console.log('createItem', req.params, req.body);
-    if(typeof req.body._id !== 'string') {
-      res.status(500).send({
-        message: '_id must be a string'
-      });
-      return;
-    }
+
+    const newItemId = await createItemId(
+      req.params.id,
+      req.user.email
+    );
+    const newItem = { ...req.body, _id: newItemId };
 
     try {
       await dbConn.getCollection('lists').updateOne(
@@ -54,7 +74,7 @@ module.exports = {
             { users: { $elemMatch: { email: req.user.email } } }
           ]
         },
-        { $push: { 'items': req.body } }
+        { $push: { 'items': newItem } }
       );
 
       const list = await dbConn.getCollection('lists').aggregate([
@@ -145,6 +165,7 @@ module.exports = {
   async updateItemField(req, res) {
     console.log('updateItemField', req.params, req.body);
     try {
+      const now = new Date();
       await dbConn.getCollection('lists').updateOne(
         {
           _id: ObjectID(req.params.listId),
@@ -153,8 +174,15 @@ module.exports = {
             { users: { $elemMatch: { email: req.user.email } } }
           ]
         },
-        { $set: { [`items.$[item].${req.params.fieldId}`]: req.body.value } },
-        { arrayFilters: [ { 'item._id': req.params.itemId } ] }
+        {
+          $set: {
+            [`items.$[item].${req.params.fieldId}`]: req.body.value,
+            updatedAt: now,
+          }
+        },
+        {
+          arrayFilters: [{ "item._id": req.params.itemId }]
+        }
       );
 
       const list = await dbConn.getCollection('lists').find({
@@ -164,7 +192,7 @@ module.exports = {
         items: { $elemMatch: { _id: req.params.itemId } }
       }).toArray();
 
-      res.status(200).send(list[0].items);
+      res.status(200).send(list[0].items[0]);
     }
     catch(e) {
       console.log(e);
