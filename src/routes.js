@@ -30,10 +30,12 @@ router.post('/list/:listId/item/:itemId/comment/image', auth, upload.single('ima
 router.get('/list', auth, listController.getLists);
 router.get('/list/trash', auth, listController.getDeletedLists);
 router.get('/list/:id', auth, listController.getList);
+router.get('/list/:id/config', auth, listController.getListConfig);
 router.post('/list', auth, listController.createList);
 router.post('/list/from/:id', auth, listController.createListFromAnother);
 router.patch('/list/:id', auth, listController.updateList);
-router.delete('/list/:id', auth, listController.deleteList);
+router.patch('/list/:id/soft-delete', auth, listController.softDeleteList);
+router.delete('/list/:id', auth, listController.hardDeleteList);
 router.patch('/list/:id/view', auth, listController.updateView);
 
 router.post('/template/from/:listId', templateController.createTemplate);

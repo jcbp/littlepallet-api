@@ -60,7 +60,8 @@ const listController = {
         description: 1,
         users: 1,
         owner: 1,
-        tags: 1
+        tags: 1,
+        updatedAt: 1,
       }).toArray();
 
       res.status(200).send(lists);
@@ -130,6 +131,35 @@ const listController = {
     }
   },
 
+  async getListConfig(req, res) {
+    console.log('getListConfig');
+    try {
+      const list = await dbConn.getCollection('lists').findOne({
+        _id: ObjectID(req.params.id),
+        $or: [
+          { isTemplate: true },
+          { owner: req.user.email },
+          { users: { $elemMatch: { email: req.user.email } } }
+        ],
+      });
+
+      delete list.items;
+      
+      if(list) {
+        res.status(200).send(list);
+      }
+      else {
+        res.status(401).send({
+          message: 'Resource does not exist or you do not have permissions'
+        });
+      }
+    }
+    catch(e) {
+      console.log(e);
+      res.status(500).send(e);
+    }
+  },
+
   async createList(req, res) {
     try {
       console.log('createList', req.body);
@@ -146,7 +176,8 @@ const listController = {
         'users': [],
         'fields': [{ _id: 0, name: 'New field', type: 'text' }],
         'views': {},
-        'items': []
+        'items': [],
+        'status': 'active', // active | deleted | archived
       });
 
       res.status(200).send(list.ops.pop());
@@ -207,7 +238,6 @@ const listController = {
         'childLists',
         'isTemplate',
         'lang',
-        'status',
         'category',
         'commentsEnabled'
       ].reduce((data, prop) => {
@@ -239,18 +269,6 @@ const listController = {
         throw {message: 'List does not exist or you have no permissions'};
       }
 
-      if(updateData.status === 'deleted' && list.value.childLists) {
-        Promise.all(list.value.childLists.map(async childList => {
-          await listController.updateList({
-            user: req.user,
-            params: { id: childList[0].toString() },
-            body: {
-              status: 'deleted'
-            }
-          });
-        }));
-      }
-
       if(res) {
         res.status(200).send(list.value);
       }
@@ -261,7 +279,44 @@ const listController = {
     }
   },
 
-  async deleteList(req, res) {
+  async softDeleteList(req, res) {
+    try {
+      const list = await dbConn.getCollection('lists').findOne({
+        _id: ObjectID(req.params.id)
+      });
+
+      if (!list) {
+        throw { message: 'List does not exist' };
+      }
+
+      if (req.user.email === list.owner) {
+        // El usuario actual es el propietario de la lista
+        const updatedList = await dbConn.getCollection('lists').findOneAndUpdate(
+          { _id: ObjectID(req.params.id) },
+          { $set: { status: 'deleted' } },
+          { returnOriginal: false }
+        );
+
+        res.status(200).send(updatedList.value);
+      } else if (list.users.some(user => user.email === req.user.email)) {
+        // El usuario actual está en la lista de usuarios
+        const updatedList = await dbConn.getCollection('lists').findOneAndUpdate(
+          { _id: ObjectID(req.params.id) },
+          { $pull: { users: { email: req.user.email } } },
+          { returnOriginal: false }
+        );
+
+        res.status(200).send(updatedList.value);
+      } else {
+        throw { message: 'You have no permissions to delete this list' };
+      }
+    } catch (e) {
+      console.log(e);
+      res.status(500).send(e);
+    }
+  },
+
+  async hardDeleteList(req, res) {
     console.log('deleteList', req.params, req.body.name);
     try {
       const list = await dbConn.getCollection('lists').deleteOne({

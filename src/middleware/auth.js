@@ -1,11 +1,11 @@
-const jwt = require('jsonwebtoken');
-const config = require('config');
+const jwt = require("jsonwebtoken");
+const config = require("config");
 
-module.exports = function(req, res, next) {
-  const token = req.headers['x-access-token'] || req.headers['authorization'];
-  if(!token) {
+module.exports = function (req, res, next) {
+  const token = req.headers["x-access-token"] || req.headers["authorization"];
+  if (!token) {
     return res.status(401).send({
-      message: 'Access denied. No token provided'
+      message: "Access denied. No token provided",
     });
   }
 
@@ -13,8 +13,9 @@ module.exports = function(req, res, next) {
     req.user = jwt.verify(token, config.secret);
     next();
   } catch (ex) {
-    res.status(400).send({
-      message: 'Invalid token'
+    res.status(401).send({
+      error: "invalid_token",
+      message: "Authentication failed",
     });
   }
 };
