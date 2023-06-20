@@ -7,7 +7,8 @@ module.exports = {
     try {
       const lists = await dbConn.getCollection('lists').find({
         isTemplate: true,
-        lang: req.params.lang
+        lang: req.params.lang,
+        isChildList: false,
       }).project({
         name: 1,
         description: 1,
