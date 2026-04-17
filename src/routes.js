@@ -35,6 +35,7 @@ router.post('/list', auth, listController.createList);
 router.post('/list/from/:id', auth, listController.createListFromAnother);
 router.patch('/list/:id', auth, listController.updateList);
 router.patch('/list/:id/soft-delete', auth, listController.softDeleteList);
+router.patch('/list/:id/restore', auth, listController.restoreList);
 router.delete('/list/:id', auth, listController.hardDeleteList);
 router.patch('/list/:id/view', auth, listController.updateView);
 

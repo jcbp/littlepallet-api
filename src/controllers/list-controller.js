@@ -316,6 +316,29 @@ const listController = {
     }
   },
 
+  async restoreList(req, res) {
+    try {
+      const list = await dbConn.getCollection('lists').findOneAndUpdate(
+        {
+          _id: ObjectID(req.params.id),
+          owner: req.user.email,
+          status: 'deleted'
+        },
+        { $set: { status: 'active' } },
+        { returnOriginal: false }
+      );
+
+      if (!list.value) {
+        throw { message: 'List does not exist or cannot be restored' };
+      }
+
+      res.status(200).send(list.value);
+    } catch (e) {
+      console.log(e);
+      res.status(500).send(e);
+    }
+  },
+
   async hardDeleteList(req, res) {
     console.log('deleteList', req.params, req.body.name);
     try {
